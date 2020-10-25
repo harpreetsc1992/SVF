@@ -33,14 +33,76 @@
 #include "SVF-FE/LLVMUtil.h"
 #include "SVF-FE/CPPUtil.h"
 #include "Graphs/ExternalPAG.h"
+#include "Graphs/PAG.h"
 #include "Util/BasicTypes.h"
 #include "MemoryModel/PAGBuilderFromFile.h"
+
+#include <iostream>
 
 using namespace std;
 using namespace SVF;
 using namespace SVFUtil;
 
 
+//std::map<Value*, std::vector<Value*>> cmpNodeMap;
+//std::vector<Value*> useList[2];
+
+//std::vector<Instruction*> prev_inst;
+
+//void addToInstList(Instruction *inst)
+//{
+//    prev_inst.push_back(inst);
+//}
+
+int isBrInst(Instruction *inst)
+{
+//    errs() << *inst << "\n";
+    if (const BranchInst* br = SVFUtil::dyn_cast<BranchInst>(inst))    return 1;
+    else                                                         return 0;
+}
+
+int isCmpInst(Instruction *inst)
+{
+    string i_cmp = inst->getOpcodeName();
+    string cmpstring = "icmp";
+//    errs() << *inst << "\n";
+    if (!(i_cmp.compare(cmpstring)))    return 1;
+    else                                return 0;
+}
+
+Value* getBrInstVar(Instruction *inst, int opIndex)
+{
+    Value* val = inst->getOperand(opIndex);
+    return val;
+}
+
+Value* getCmpInstVar(Instruction *inst, int opIndex)
+{
+    Value* val = inst->getOperand(opIndex);
+
+    if (val->getValueID() == 56)    return val;
+//        useList[0].push_back(val);
+//        cmpNodeMap.insert(std::pair<Value*, std::vector<Value*>>(val, useList[0]));
+    else                            return NULL;
+}
+/*
+Instruction* >findDefInst(NodeID opnd)G::
+{
+    for (std::vector<Instruction*>::iterator it = prev_inst.begin() ; it != prev_inst.end(); ++it)
+    {
+        Instruction *inst = SVFUtil::dyn_cast<Instruction *>(it);
+        for (u32_t i = 0; i < inst->getNumOperands(); i++)
+        {
+            Value *val = getCmpInstVar(inst, i);
+            NodeID temp = pag->getValueNode(val);
+            if (temp == opnd)
+            {
+                return inst;
+            }
+        }
+    }
+}
+*/
 /*!
  * Start building PAG here
  */
@@ -53,6 +115,7 @@ PAG* PAGBuilder::build(SVFModule* svfModule)
         PAGBuilderFromFile fileBuilder(SVFModule::pagFileName());
         return fileBuilder.build();
     }
+    
 
     // If the PAG has been built before, then we return the unique PAG of the program
     if(pag->getNodeNumAfterPAGBuild() > 1)
@@ -104,17 +167,95 @@ PAG* PAGBuilder::build(SVFModule* svfModule)
                 pag->addFunArgs(&fun,pag->getPAGNode(argValNodeId));
             }
         }
+            int brDone = 0;
+            int identifyCmp[2] = {0, 0};
         for (Function::iterator bit = fun.getLLVMFun()->begin(), ebit = fun.getLLVMFun()->end();
                 bit != ebit; ++bit)
         {
             BasicBlock& bb = *bit;
+            std::vector<NodeID> valNodeBr;
+            NodeID globalNodeBrVal;
+            int br = 0;
+//            NodeID valNodeBr;
             for (BasicBlock::iterator it = bb.begin(), eit = bb.end();
                     it != eit; ++it)
             {
                 Instruction& inst = *it;
+//               addToInstList(&inst);
+                Value* val;
+                NodeID valNode1, valNode2, nodeCmp;
+                const CmpPE* cmpPE;
+                const CmpPE* cmpPEBB;
+                const CmpPE* cmpPEBr;
+                identifyCmp[0] = isCmpInst(&inst);
+                int isBr = isBrInst(&inst);
+                errs() << brDone << isBr << identifyCmp[0] << identifyCmp[1] << "\n";
+                PAGEdge::PAGEdgeSetTy pagE;
+                PAGEdge *pagEdge;
+                PAGEdge::GEdgeKind gek;
+                if (identifyCmp[0])
+                {
+                    for (u32_t i = 0; i < inst.getNumOperands(); i++)
+                    {
+                        val = getCmpInstVar(&inst, i);
+                        if (val != NULL) 
+                        {
+                            if (i == 0)
+                            {
+                                nodeCmp = getValueNode(&inst);
+                                valNode1 = pag->getValueNode(val);
+                                cmpPE = addCmpEdge(nodeCmp, valNode1);
+                                pag->addCmpNode(pag->getPAGNode(valNode1), cmpPE);
+                            }
+                            else if (i == 1)
+                            {
+                                nodeCmp = getValueNode(&inst);
+                                valNode2 = pag->getValueNode(val);
+                                cmpPE = addCmpEdge(nodeCmp, valNode2);
+                                pag->addCmpNode(pag->getPAGNode(valNode2), cmpPE);
+                            }
+                        }
+                    }
+                    identifyCmp[1] = 1;
+                }
+                if (identifyCmp[1] && isBr)
+                {
+                    errs() << "Br after Cmp instruction \n";
+                    valNodeBr.push_back((NodeID) getValueNode(&inst));
+                    errs() << inst << "\n";
+//                    valNodeBr = getValueNode(&inst);
+                    if (brDone)
+                    {
+                        errs() << "Creating edge between first branch and the others \n";
+                        errs() << inst << "::" << valNodeBr[br] << "\n";
+                        cmpPEBr = addCmpEdge(globalNodeBrVal, valNodeBr[1]);
+                        pag->addCmpNode(pag->getPAGNode(globalNodeBrVal), cmpPEBr);
+                    }
+                    else
+                    {
+                        errs() << "Creating edge between first branch and Compare Node\n";
+                        globalNodeBrVal = getValueNode(&inst);
+                        errs() << inst << "::" << globalNodeBrVal << "::" << nodeCmp << "\n";
+                        cmpPEBr = addCmpEdge(nodeCmp, globalNodeBrVal);
+                        pag->addCmpNode(pag->getPAGNode(globalNodeBrVal), cmpPEBr);
+                    }
+                    brDone = 1;
+                    br = 1;
+//                    identifyCmp[1] = 0;
+                }
+                else if (brDone && !isBr && identifyCmp[1])
+                {
+                    errs() << "Next Instruction after Cmp instruction not Branch\n";
+//                    identifyCmp[0] = 0;
+                    NodeID valNodeBB = getValueNode(&inst);
+                    errs() << inst << "::" << valNodeBB << "::" << br <<  "\n";
+                    cmpPEBB = addCmpEdge(globalNodeBrVal, valNodeBB);
+                    pag->addCmpNode(pag->getPAGNode(valNodeBB), cmpPEBB);
+                }
                 setCurrentLocation(&inst,&bb);
                 visit(inst);
             }
+            identifyCmp[0] = 0;
         }
     }
 
@@ -140,7 +281,44 @@ void PAGBuilder::initalNode()
     pag->addConstantObjNode();
     pag->addBlackholePtrNode();
     addNullPtrNode();
+#if 0
+    for (Module::iterator F = module.begin(), E = module.end(); F != E; ++F)
+    {
+        // Worklist of values to check for constant GEP expressions
+        std::vector<Instruction *> Worklist;
 
+        //
+        // Initialize the worklist by finding all instructions that have one or more
+        // operands containing a constant GEP expression.
+        //
+        for (Function::iterator BB = (*F).begin(); BB != (*F).end(); ++BB)
+        {
+            for (BasicBlock::iterator i = BB->begin(); i != BB->end(); ++i)
+            {
+                //
+                // Scan through the operands of this instruction.  If it is a constant
+                // expression GEP, insert an instruction GEP before the instruction.
+                //
+
+                Instruction * I = &(*i);
+                for (unsigned index = 0; index < I->getNumOperands(); ++index)
+                {
+//                    const Value *val = pagBuilderCmp->getCurrentValue();
+//                    const Constant *ref = SVFUtil::dyn_cast<Constant>(val);
+//                    if (isCmpConstantExpr(ref))
+//                    {
+//                        fprintf(stdout, "Checking Cmp\n");
+//                    }
+
+                    if (hasConstantGEP (I->getOperand(index)))
+                    {
+                        Worklist.push_back (I);
+                    }
+                }
+            }
+        }
+    }
+#endif
     for (SymbolTableInfo::ValueToIDMapTy::iterator iter =
                 symTable->valSyms().begin(); iter != symTable->valSyms().end();
             ++iter)
