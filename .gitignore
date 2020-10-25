@@ -18,3 +18,7 @@ doxygen/
 *.opt
 *.log
 *.status
+*.swp
+*.so.*
+*.a
+llvm-10.0.0.obj/bin

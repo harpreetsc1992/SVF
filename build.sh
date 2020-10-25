@@ -167,16 +167,16 @@ fi
 #########
 # Run ctest
 ########
-if [[ $sysOS == "Linux" ]]  
-then
-   if [[ $1 == 'debug' ]]
-   then
-     cd ./'Debug-build'
-   else 
-     cd ./'Release-build'
-   fi
-  ctest --v
-fi
+#if [[ $sysOS == "Linux" ]]  
+#then
+#   if [[ $1 == 'debug' ]]
+#   then
+#     cd ./'Debug-build'
+#   else 
+#     cd ./'Release-build'
+#   fi
+#  ctest --v
+#fi
 
 #########
 # Optionally, you can also specify a CXX_COMPILER and your $LLVM_HOME for your build
