@@ -43,24 +43,6 @@ using namespace std;
 using namespace SVF;
 using namespace SVFUtil;
 
-
-//std::map<Value*, std::vector<Value*>> cmpNodeMap;
-//std::vector<Value*> useList[2];
-
-//std::vector<Instruction*> prev_inst;
-
-//void addToInstList(Instruction *inst)
-//{
-//    prev_inst.push_back(inst);
-//}
-
-int isBrInst(Instruction *inst)
-{
-//    errs() << *inst << "\n";
-    if (const BranchInst* br = SVFUtil::dyn_cast<BranchInst>(inst))    return 1;
-    else                                                         return 0;
-}
-
 int isCmpInst(Instruction *inst)
 {
     string i_cmp = inst->getOpcodeName();
@@ -68,6 +50,109 @@ int isCmpInst(Instruction *inst)
 //    errs() << *inst << "\n";
     if (!(i_cmp.compare(cmpstring)))    return 1;
     else                                return 0;
+}
+
+NodeID PAGBuilder::connectBranch(NodeID brVal, BasicBlock &bb)
+{
+    NodeID valNodeBB = 0;
+    BasicBlock::iterator it, eit;
+    for (it = bb.begin(), eit = bb.end(); it != eit; ++it)
+    {
+        Instruction& inst = *it;
+        
+        const CmpPE* cmpPEBB;
+        const LoadPE* loadEdge;
+        const StorePE* storeEdge;
+        const BinaryOPPE* binaryOPEdge;
+        valNodeBB = getValueNode(&inst);
+//        if (isCmpInst(&inst))
+//        {
+//            NodeID valBB = pag->getValueNode(static_cast<const Value *>(bb));
+//            errs() << valBB << "\n";
+//        }
+
+        errs() << inst << "::" << brVal << "::" << valNodeBB << "\n";
+        if (llvm::isa <llvm::LoadInst> (inst))
+        {
+            for (int i = 0; i < inst.getNumOperands(); i++)
+            {
+                NodeID opVal = -1;
+                Value* val = inst.getOperand(i);
+
+                if (val->getValueID() == 56)
+                {
+                    NodeID opVal = getValueNode(val);
+                    loadEdge = pag->addLoadPE(opVal, valNodeBB);
+                }
+            }
+        }
+        else if (llvm::isa <llvm::StoreInst> (inst))
+        {
+            for (int i = 0; i < inst.getNumOperands(); i++)
+            {
+                NodeID opVal = -1;
+                Value* val = inst.getOperand(i);
+
+                if (val->getValueID() == 56)
+                {
+                    NodeID opVal = getValueNode(val);
+                    loadEdge = pag->addLoadPE(opVal, valNodeBB);
+                }
+            }
+        }
+        else if (llvm::isa <llvm::BinaryOperator> (inst))
+        {
+            for (int i = 0; i < inst.getNumOperands(); i++)
+            {
+                NodeID opVal = -1;
+                Value* val = inst.getOperand(i);
+
+                if (val->getValueID() == 56)
+                {
+                    NodeID opVal = getValueNode(val);
+                    binaryOPEdge = pag->addBinaryOPPE(opVal, valNodeBB);
+                }
+            }
+        }
+        cmpPEBB = addCmpEdge(brVal, valNodeBB);
+        pag->addCmpNode(pag->getPAGNode(valNodeBB), cmpPEBB);
+
+//        counter = 1;
+/*        if (counter)
+        {
+            if (it != bb.end())
+            {
+                NodeID valNodeBB2 = getValueNode(&nextInst);
+                errs() << inst << "::" << valNodeBB << "::" << valNodeBB2 << "\n";
+                cmpPEBB = addCmpEdge(valNodeBB, valNodeBB2);
+                pag->addCmpNode(pag->getPAGNode(valNodeBB), cmpPEBB);
+            }
+            else 
+            {
+                
+            }
+        }
+        else
+        {
+            errs() << inst << "::" << brVal << "::" << valNodeBB << "\n";
+            cmpPEBB = addCmpEdge(brVal, valNodeBB);
+            pag->addCmpNode(pag->getPAGNode(valNodeBB), cmpPEBB);
+            counter = 1;
+        }
+*/
+    }
+    --it;
+    Instruction& inst = *it;
+//    errs() << "Checking last instruction in Basic Block::" << inst << "\n";
+    if (inst.getNumOperands() == 1)    return brVal;
+    else                               return valNodeBB;
+}
+
+int isBrInst(Instruction *inst)
+{
+//    errs() << *inst << "\n";
+    if (const BranchInst* br = SVFUtil::dyn_cast<BranchInst>(inst))    return 1;
+    else                                                         return 0;
 }
 
 Value* getBrInstVar(Instruction *inst, int opIndex)
@@ -173,10 +258,10 @@ PAG* PAGBuilder::build(SVFModule* svfModule)
                 bit != ebit; ++bit)
         {
             BasicBlock& bb = *bit;
-            std::vector<NodeID> valNodeBr;
+//            std::vector<NodeID> valNodeBr;
             NodeID globalNodeBrVal;
             int br = 0;
-//            NodeID valNodeBr;
+            NodeID valNodeBr;
             for (BasicBlock::iterator it = bb.begin(), eit = bb.end();
                     it != eit; ++it)
             {
@@ -185,11 +270,10 @@ PAG* PAGBuilder::build(SVFModule* svfModule)
                 Value* val;
                 NodeID valNode1, valNode2, nodeCmp;
                 const CmpPE* cmpPE;
-                const CmpPE* cmpPEBB;
                 const CmpPE* cmpPEBr;
                 identifyCmp[0] = isCmpInst(&inst);
                 int isBr = isBrInst(&inst);
-                errs() << brDone << isBr << identifyCmp[0] << identifyCmp[1] << "\n";
+//                errs() << brDone << isBr << identifyCmp[0] << identifyCmp[1] << "\n";
                 PAGEdge::PAGEdgeSetTy pagE;
                 PAGEdge *pagEdge;
                 PAGEdge::GEdgeKind gek;
@@ -220,24 +304,40 @@ PAG* PAGBuilder::build(SVFModule* svfModule)
                 }
                 if (identifyCmp[1] && isBr)
                 {
-                    errs() << "Br after Cmp instruction \n";
-                    valNodeBr.push_back((NodeID) getValueNode(&inst));
-                    errs() << inst << "\n";
-//                    valNodeBr = getValueNode(&inst);
+                    if (!brDone)
+                    {
+                        globalNodeBrVal = getValueNode(&inst);
+//                        errs() << inst << "::" << globalNodeBrVal << "::" << nodeCmp << "\n";
+                        cmpPEBr = addCmpEdge(nodeCmp, globalNodeBrVal);
+                        pag->addCmpNode(pag->getPAGNode(globalNodeBrVal), cmpPEBr);
+                        brDone = 1;
+                    }
+                    else
+                    {
+                        globalNodeBrVal = connectBranch(globalNodeBrVal, bb);
+                    }
+                }
+//                    valNodeBr.push_back(getValueNode(&inst));
+//                    for (std::vector<NodeID>::iterator it = valNodeBr.begin() ; it != valNodeBr.end(); ++it)
+//                        errs() << *it << "\n";
+#if 0
+                    valNodeBr = getValueNode(&inst);
                     if (brDone)
                     {
                         errs() << "Creating edge between first branch and the others \n";
-                        errs() << inst << "::" << valNodeBr[br] << "\n";
-                        cmpPEBr = addCmpEdge(globalNodeBrVal, valNodeBr[1]);
+                        errs() << inst << "::" << valNodeBr << "\n";
+                        cmpPEBr = addCmpEdge(globalNodeBrVal, valNodeBr);
                         pag->addCmpNode(pag->getPAGNode(globalNodeBrVal), cmpPEBr);
                     }
                     else
                     {
+                        errs() << "Br after Cmp instruction \n";
                         errs() << "Creating edge between first branch and Compare Node\n";
                         globalNodeBrVal = getValueNode(&inst);
                         errs() << inst << "::" << globalNodeBrVal << "::" << nodeCmp << "\n";
                         cmpPEBr = addCmpEdge(nodeCmp, globalNodeBrVal);
                         pag->addCmpNode(pag->getPAGNode(globalNodeBrVal), cmpPEBr);
+//                        identifyCmp[1] = 0;
                     }
                     brDone = 1;
                     br = 1;
@@ -248,10 +348,11 @@ PAG* PAGBuilder::build(SVFModule* svfModule)
                     errs() << "Next Instruction after Cmp instruction not Branch\n";
 //                    identifyCmp[0] = 0;
                     NodeID valNodeBB = getValueNode(&inst);
-                    errs() << inst << "::" << valNodeBB << "::" << br <<  "\n";
+                    errs() << inst << "::" << valNodeBB << "\n";
                     cmpPEBB = addCmpEdge(globalNodeBrVal, valNodeBB);
                     pag->addCmpNode(pag->getPAGNode(valNodeBB), cmpPEBB);
                 }
+#endif
                 setCurrentLocation(&inst,&bb);
                 visit(inst);
             }

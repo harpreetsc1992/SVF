@@ -79,6 +79,8 @@ public:
     /// Sanity check for PAG
     void sanityCheck();
 
+    NodeID connectBranch(NodeID brVal, BasicBlock &bb);
+
     /// Get different kinds of node
     //@{
     // GetValNode - Return the value node according to a LLVM Value.
