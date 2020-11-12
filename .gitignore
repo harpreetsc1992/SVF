@@ -12,9 +12,14 @@ doxygen/
 !.gitignore
 *~
 *.o
+*.swp
+*.so.*
+*.a
+llvm-10.0.0.obj/bin
 *.out
 *.ll
 *.bc
 *.opt
 *.log
 *.status
+makefailed

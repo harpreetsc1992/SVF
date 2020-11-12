@@ -205,7 +205,15 @@ RetBlockNode* ICFG::getRetBlockNode(const Instruction* inst)
     assert (node!=NULL && "no RetBlockNode for this instruction?");
     return node;
 }
-
+/*
+IntraMemNode* ICFG::getIntraMemNode(const Instruction* inst)
+{
+    IntraBlockNode* node = getIntraBlockICFGNode(inst);
+    if(node==NULL)
+        node = addIntraBlockICFGNode(inst);
+    return node;
+}
+*/
 IntraBlockNode* ICFG::getIntraBlockNode(const Instruction* inst)
 {
     IntraBlockNode* node = getIntraBlockICFGNode(inst);
@@ -450,6 +458,28 @@ struct DOTGraphTraits<ICFG*> : public DOTGraphTraits<PAG*>
             if(DumpLLVMInst)
                 rawstr << *(bNode->getInst()) << "\n";
         }
+
+        else if (IntraMemNode* bNode = SVFUtil::dyn_cast<IntraMemNode>(node))
+        {
+            rawstr << getSourceLoc(bNode->getInst()) << "\n";
+
+            PAG::PAGEdgeList&  edges = PAG::getPAG()->getInstPTAPAGEdgeList(bNode);
+            for (PAG::PAGEdgeList::iterator it = edges.begin(), eit = edges.end(); it != eit; ++it)
+            {
+                const PAGEdge* edge = *it;
+                NodeID src = edge->getSrcID();
+                NodeID dst = edge->getDstID();
+                rawstr << dst << "<--" << src << "\n";
+                std::string srcValueName = edge->getSrcNode()->getValueName();
+                std::string dstValueName = edge->getDstNode()->getValueName();
+                rawstr << dstValueName << "<--" << srcValueName << "\n";
+
+            }
+
+            if(DumpLLVMInst)
+                rawstr << *(bNode->getInst()) << "\n";
+        }
+ 
         else if (FunEntryBlockNode* entry = SVFUtil::dyn_cast<FunEntryBlockNode>(node))
         {
             if (isExtCall(entry->getFun()))
@@ -506,6 +536,10 @@ struct DOTGraphTraits<ICFG*> : public DOTGraphTraits<PAG*>
         if(SVFUtil::isa<IntraBlockNode>(node))
         {
             rawstr <<  "color=black";
+        }
+        else if(SVFUtil::isa<IntraMemNode>(node))
+        {
+            rawstr <<  "color=orange";
         }
         else if(SVFUtil::isa<FunEntryBlockNode>(node))
         {

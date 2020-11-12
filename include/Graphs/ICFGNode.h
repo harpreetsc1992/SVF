@@ -152,6 +152,48 @@ public:
     virtual const std::string toString() const;
 };
 
+/*
+  IntraBlock Node for Memory operations
+*/
+
+class IntraMemNode : public ICFGNode
+{
+private:
+    const Instruction *inst;
+
+public:
+    IntraMemNode(NodeID id, const Instruction *i) : ICFGNode(id, IntraBlock), inst(i)
+    {
+        fun = LLVMModuleSet::getLLVMModuleSet()->getSVFFunction(inst->getFunction());
+        bb = inst->getParent();
+    }
+
+    inline const Instruction *getInst() const
+    {
+        return inst;
+    }
+
+    /// Methods for support type inquiry through isa, cast, and dyn_cast:
+    //@{
+    static inline bool classof(const IntraMemNode *)
+    {
+        return true;
+    }
+
+    static inline bool classof(const ICFGNode *node)
+    {
+        return node->getNodeKind() == IntraBlock;
+    }
+
+    static inline bool classof(const GenericICFGNodeTy *node)
+    {
+        return node->getNodeKind() == IntraBlock;
+    }
+    //@}
+
+    const std::string toString() const;
+};
+
 /*!
  * ICFG node stands for a program statement
  */

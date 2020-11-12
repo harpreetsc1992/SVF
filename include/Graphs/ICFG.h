@@ -183,7 +183,16 @@ private:
         if (it == InstToBlockNodeMap.end())
             return NULL;
         return it->second;
+    }    
+/*
+    inline IntraMemNode* getIntraMemICFGNode(const Instruction* inst)
+    {
+        InstToBlockNodeMapTy::const_iterator it = InstToBlockNodeMap.find(inst);
+        if (it == InstToBlockNodeMap.end())
+            return NULL;
+        return it->second;
     }
+*/
     inline IntraBlockNode* addIntraBlockICFGNode(const Instruction* inst)
     {
         IntraBlockNode* sNode = new IntraBlockNode(totalICFGNode++,inst);
@@ -191,7 +200,6 @@ private:
         InstToBlockNodeMap[inst] = sNode;
         return sNode;
     }
-
     /// Get/Add a function entry node
     inline FunEntryBlockNode* getFunEntryICFGNode(const SVFFunction* fun)
     {
