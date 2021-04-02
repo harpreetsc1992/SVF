@@ -64,7 +64,7 @@ FunExitBlockNode::FunExitBlockNode(NodeID id, const SVFFunction* f) : InterBlock
 const std::string ICFGNode::toString() const {
     std::string str;
     raw_string_ostream rawstr(str);
-    rawstr << "ICFGNode ID: " << getId();
+    rawstr << "ICFGNode ID: " << getId() << "Label: ";
     return rawstr.str();
 }
 
@@ -80,7 +80,7 @@ const std::string GlobalBlockNode::toString() const {
 const std::string IntraBlockNode::toString() const {
     std::string str;
     raw_string_ostream rawstr(str);
-    rawstr << "IntraBlockNode ID: " << getId();
+    rawstr << "IntraBlockNode ID: " << getId() << "Label: ";
     rawstr << " " << *getInst() << " {fun: " << getFun()->getName() << "}";
     return rawstr.str();
 }
@@ -440,7 +440,8 @@ struct DOTGraphTraits<ICFG*> : public DOTGraphTraits<PAG*>
         rawstr << "NodeID: " << node->getId() << "\n";
         if (IntraBlockNode* bNode = SVFUtil::dyn_cast<IntraBlockNode>(node))
         {
-            rawstr << getSourceLoc(bNode->getInst()) << "\n";
+            ICFGNode* icfgNode = SVFUtil::dyn_cast<ICFGNode>(bNode);
+            rawstr << getSourceLoc(bNode->getInst()) << "Label" << node->getParBrId(icfgNode) << " :" << icfgNode->verifyLabel(icfgNode) << "\n";
 
             PAG::PAGEdgeList&  edges = PAG::getPAG()->getInstPTAPAGEdgeList(bNode);
             for (PAG::PAGEdgeList::iterator it = edges.begin(), eit = edges.end(); it != eit; ++it)

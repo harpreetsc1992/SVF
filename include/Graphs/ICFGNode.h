@@ -34,6 +34,10 @@
 #include "Graphs/GenericGraph.h"
 #include "Graphs/ICFGEdge.h"
 
+using namespace std;
+
+#define VECTORSZ 64
+
 namespace SVF
 {
 
@@ -68,6 +72,16 @@ public:
     typedef Set<const RetPE *> RetPESet;
     typedef std::list<const VFGNode*> VFGNodeList;
 
+private:
+    //std::map<const NodeID, std::vector<std::bitset<VECTORSZ> > > label;
+    //std::map<const NodeID, std::bitset<VECTORSZ> > label;
+    std::map<const NodeID, uint64_t > label;
+    NodeID parBrId;
+    //std::vector<std::bitset<VECTORSZ> > v;
+    //std::bitset<VECTORSZ> v;
+    uint64_t v;
+//    NodeID label;
+
 public:
     /// Constructor
     ICFGNode(NodeID i, ICFGNodeK k) : GenericICFGNodeTy(i, k), fun(NULL), bb(NULL)
@@ -87,6 +101,15 @@ public:
         return bb;
     }
 
+    inline void setParBrId(ICFGNode* node, NodeID brId)
+    {
+        node->parBrId = brId;
+    }
+
+    inline NodeID getParBrId(ICFGNode* node)
+    {
+        return node->parBrId;
+    }
 
     /// Overloading operator << for dumping ICFG node ID
     //@{
@@ -110,6 +133,49 @@ public:
     }
     ///@}
 
+    inline ICFGNode* endLabel(ICFGNode* node)
+    {
+        const NodeID id = node->getId();
+        node->v = node->v & 0;
+        //v[id] = v[id] >> 64;
+        //v[id][0] = 0;
+        //(node->label).insert(std::pair<NodeID, std::vector<std::bitset<VECTORSZ> > >(id, node->v));
+        //(node->label).insert(std::pair<NodeID, std::bitset<VECTORSZ> >(id, node->v));
+        (node->label).insert(std::pair<NodeID, uint64_t >(id, node->v));
+        return node;
+    }
+
+    inline ICFGNode* toggleLabel(ICFGNode* node, uint8_t cond)
+    {
+        const NodeID id = node->getId();
+        int valset = 0;
+        int i = 0;
+        //for (i = 0; i < VECTORSZ; i++) {
+            //if (v[i] == 1) {
+                //valset = 1;
+                //break;
+            //}
+        //}
+        //node->v[id] = (i < 63) ? node->v[id] << 1: node->v[id];
+        node->v = node->v << 1;
+        node->v = node->v | (uint64_t) cond;
+        //v.push_back(b);
+        //(node->label).insert(std::pair<NodeID, std::vector<std::bitset<VECTORSZ> > >(id, node->v));
+        //(node->label).insert(std::pair<NodeID, std::bitset<VECTORSZ> >(id, node->v));
+        (node->label).insert(std::pair<NodeID, uint64_t >(id, node->v));
+//        (node->label).insert((node->label).at(id) ^ 1);
+        return node;
+    }
+
+    inline int verifyLabel(const ICFGNode* node)
+    {
+        const NodeID id = node->getId();
+        const auto iter = (node->label).find(id);
+    
+        //if(iter != (node->label).end()) return iter->second;
+        //else                            return 0;
+    }
+ 
     virtual const std::string toString() const;
 
 protected:
@@ -118,6 +184,72 @@ protected:
     VFGNodeList VFGNodes; //< a set of VFGNodes
 
 };
+
+
+class NodeLabel
+{
+private: 
+    const Instruction* prevBr;
+    const Instruction* currInst;
+    StringRef parLabel;
+    std::vector<Value *> operands;
+    uint8_t isTaken = 0;
+public:
+    NodeLabel() {}
+    NodeLabel(const Instruction* brI, const Instruction* i, StringRef parent) : currInst(i), prevBr(brI), parLabel(parent) {
+    }
+
+    const Instruction* getParentBranch()
+    {
+        return this->prevBr;
+    }
+
+    StringRef getLabel()
+    {
+        return this->parLabel;
+    }
+
+    uint8_t checkBranch()
+    {
+        return this->isTaken;
+    }
+    
+    const Instruction* getInst()
+    {
+        return this->currInst;
+    }
+
+    Value* getOperand1()
+    {
+        return this->operands.at(0);
+    }
+
+    Value* getOperand2()
+    {
+        return this->operands.at(1);
+    }
+
+    void addOperand(Value* v)
+    {
+        (this->operands).push_back(v);
+    }
+
+    void setLabel(StringRef iName)
+    {
+        this->parLabel = iName;
+    }
+   
+    void copyLabel(NodeLabel *brLabel)
+    {
+        this->isTaken = brLabel->isTaken;
+    }
+
+    void setBrLabel(uint8_t decision)
+    {
+        this->isTaken = decision;
+    }
+};
+
 
 /*!
  * Unique ICFG node stands for all global initializations
@@ -201,6 +333,7 @@ class IntraBlockNode : public ICFGNode
 {
 private:
     const Instruction *inst;
+//    int label = 0;
 
 public:
     IntraBlockNode(NodeID id, const Instruction *i) : ICFGNode(id, IntraBlock), inst(i)

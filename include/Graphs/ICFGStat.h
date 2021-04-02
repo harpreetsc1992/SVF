@@ -144,7 +144,6 @@ public:
 
     void printStat(string statname)
     {
-
         std::cout << "\n************ " << statname << " ***************\n";
         std::cout.flags(std::ios::left);
         unsigned field_width = 20;

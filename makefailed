@@ -18,16 +18,16 @@ LLVM_DIR = /home/grads/h/harpreetsc/SVF/llvm-10.0.0.obj
 -- Generating done
 -- Build files have been written to: /home/grads/h/harpreetsc/SVF/Release-build
 Scanning dependencies of target Cudd
-[  0%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddTable.c.o
 [  1%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddRef.c.o
-[  2%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddInit.c.o
+[  2%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddAPI.c.o
+[  1%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddTable.c.o
 [  3%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddCheck.c.o
-[  4%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddAPI.c.o
-[  5%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddUtil.c.o
+[  4%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddUtil.c.o
+[  5%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddInit.c.o
 [  6%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddCof.c.o
 [  7%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddSat.c.o
-[  7%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddReorder.c.o
 [  8%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddAddIte.c.o
+[  8%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddReorder.c.o
 [  9%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddBddIte.c.o
 [ 10%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddBddAbs.c.o
 [ 11%] Building C object lib/CUDD/CMakeFiles/Cudd.dir/cuddZddReord.c.o
@@ -57,92 +57,20 @@ Scanning dependencies of target Cudd
 [ 32%] Linking C static library libCudd.a
 [ 32%] Built target Cudd
 Scanning dependencies of target Svf
-[ 35%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/CHG.cpp.o
-[ 35%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/BreakConstantExpr.cpp.o
 [ 35%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/CPPUtil.cpp.o
+[ 34%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/BreakConstantExpr.cpp.o
+[ 35%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/CHG.cpp.o
 [ 35%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/CallGraphBuilder.cpp.o
-[ 36%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/DCHG.cpp.o
-[ 37%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/DataFlowUtil.cpp.o
-[ 38%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/Graph2Json.cpp.o
+[ 36%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/DataFlowUtil.cpp.o
+[ 37%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/DCHG.cpp.o
 [ 39%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/ICFGBuilder.cpp.o
+[ 39%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/Graph2Json.cpp.o
 [ 40%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/LLVMModule.cpp.o
-[ 41%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/LLVMUtil.cpp.o
-[ 42%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/LocMemModel.cpp.o
-[ 42%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/PAGBuilder.cpp.o
-[ 43%] Building CXX object lib/CMakeFiles/Svf.dir/SVF-FE/SymbolTableInfo.cpp.o
-[ 44%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/ConsG.cpp.o
-[ 45%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/ExternalPAG.cpp.o
-[ 46%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/ICFG.cpp.o
-[ 47%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/OfflineConsG.cpp.o
-[ 48%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/PAG.cpp.o
-[ 49%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/PTACallGraph.cpp.o
-[ 50%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/SVFG.cpp.o
-[ 50%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/SVFGOPT.cpp.o
-[ 51%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/SVFGStat.cpp.o
-[ 52%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/ThreadCallGraph.cpp.o
-[ 53%] Building CXX object lib/CMakeFiles/Svf.dir/Graphs/VFG.cpp.o
-[ 54%] Building CXX object lib/CMakeFiles/Svf.dir/Util/Conditions.cpp.o
-[ 55%] Building CXX object lib/CMakeFiles/Svf.dir/Util/ExtAPI.cpp.o
-[ 56%] Building CXX object lib/CMakeFiles/Svf.dir/Util/PTAStat.cpp.o
-[ 57%] Building CXX object lib/CMakeFiles/Svf.dir/Util/PathCondAllocator.cpp.o
-[ 57%] Building CXX object lib/CMakeFiles/Svf.dir/Util/SVFUtil.cpp.o
-[ 58%] Building CXX object lib/CMakeFiles/Svf.dir/Util/ThreadAPI.cpp.o
-[ 59%] Building CXX object lib/CMakeFiles/Svf.dir/Util/TypeBasedHeapCloning.cpp.o
-[ 60%] Building CXX object lib/CMakeFiles/Svf.dir/MemoryModel/LocationSet.cpp.o
-[ 61%] Building CXX object lib/CMakeFiles/Svf.dir/MemoryModel/MemModel.cpp.o
-[ 62%] Building CXX object lib/CMakeFiles/Svf.dir/MemoryModel/PAGBuilderFromFile.cpp.o
-[ 63%] Building CXX object lib/CMakeFiles/Svf.dir/MemoryModel/PointerAnalysis.cpp.o
-[ 64%] Building CXX object lib/CMakeFiles/Svf.dir/MemoryModel/PointerAnalysisImpl.cpp.o
-[ 64%] Building CXX object lib/CMakeFiles/Svf.dir/MSSA/MemPartition.cpp.o
-[ 65%] Building CXX object lib/CMakeFiles/Svf.dir/MSSA/MemRegion.cpp.o
-[ 66%] Building CXX object lib/CMakeFiles/Svf.dir/MSSA/MemSSA.cpp.o
-[ 67%] Building CXX object lib/CMakeFiles/Svf.dir/MSSA/SVFGBuilder.cpp.o
-[ 68%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/Andersen.cpp.o
-[ 69%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/AndersenHCD.cpp.o
-[ 70%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/AndersenHLCD.cpp.o
-[ 71%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/AndersenLCD.cpp.o
-[ 71%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/AndersenSCD.cpp.o
-[ 72%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/AndersenSFR.cpp.o
-[ 73%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/AndersenStat.cpp.o
-[ 74%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/AndersenWaveDiff.cpp.o
-[ 75%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/AndersenWaveDiffWithType.cpp.o
-[ 76%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/CSC.cpp.o
-[ 77%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/FlowSensitive.cpp.o
-[ 78%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/FlowSensitiveStat.cpp.o
-[ 78%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/FlowSensitiveTBHC.cpp.o
-[ 79%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/TypeAnalysis.cpp.o
-[ 80%] Building CXX object lib/CMakeFiles/Svf.dir/WPA/WPAPass.cpp.o
-[ 81%] Building CXX object lib/CMakeFiles/Svf.dir/SABER/DoubleFreeChecker.cpp.o
-[ 82%] Building CXX object lib/CMakeFiles/Svf.dir/SABER/FileChecker.cpp.o
-[ 83%] Building CXX object lib/CMakeFiles/Svf.dir/SABER/LeakChecker.cpp.o
-[ 84%] Building CXX object lib/CMakeFiles/Svf.dir/SABER/ProgSlice.cpp.o
-[ 85%] Building CXX object lib/CMakeFiles/Svf.dir/SABER/SaberAnnotator.cpp.o
-[ 85%] Building CXX object lib/CMakeFiles/Svf.dir/SABER/SaberCheckerAPI.cpp.o
-[ 86%] Building CXX object lib/CMakeFiles/Svf.dir/SABER/SaberSVFGBuilder.cpp.o
-[ 87%] Building CXX object lib/CMakeFiles/Svf.dir/SABER/SrcSnkDDA.cpp.o
-[ 88%] Building CXX object lib/CMakeFiles/Svf.dir/DDA/ContextDDA.cpp.o
-[ 89%] Building CXX object lib/CMakeFiles/Svf.dir/DDA/DDAClient.cpp.o
-[ 90%] Building CXX object lib/CMakeFiles/Svf.dir/DDA/DDAPass.cpp.o
-[ 91%] Building CXX object lib/CMakeFiles/Svf.dir/DDA/DDAStat.cpp.o
-[ 92%] Building CXX object lib/CMakeFiles/Svf.dir/DDA/FlowDDA.cpp.o
-[ 92%] Linking CXX static library libSvf.a
-[ 92%] Built target Svf
-Scanning dependencies of target wpa
-Scanning dependencies of target dvf
-Scanning dependencies of target saber
-Scanning dependencies of target svf-ex
-[ 93%] Building CXX object tools/WPA/CMakeFiles/wpa.dir/wpa.cpp.o
-[ 94%] Building CXX object tools/DDA/CMakeFiles/dvf.dir/dda.cpp.o
-[ 95%] Building CXX object tools/SABER/CMakeFiles/saber.dir/saber.cpp.o
-[ 96%] Building CXX object tools/Example/CMakeFiles/svf-ex.dir/svf-ex.cpp.o
-[ 97%] Linking CXX executable ../../bin/wpa
-[ 97%] Built target wpa
-[ 98%] Linking CXX executable ../../bin/dvf
-[ 98%] Built target dvf
-[ 99%] Linking CXX executable ../../bin/svf-ex
-[100%] Linking CXX executable ../../bin/saber
-[100%] Built target svf-ex
-[100%] Built target saber
+lib/CMakeFiles/Svf.dir/build.make:134: recipe for target 'lib/CMakeFiles/Svf.dir/SVF-FE/CallGraphBuilder.cpp.o' failed
+lib/CMakeFiles/Svf.dir/build.make:230: recipe for target 'lib/CMakeFiles/Svf.dir/SVF-FE/ICFGBuilder.cpp.o' failed
+lib/CMakeFiles/Svf.dir/build.make:206: recipe for target 'lib/CMakeFiles/Svf.dir/SVF-FE/Graph2Json.cpp.o' failed
+CMakeFiles/Makefile2:1049: recipe for target 'lib/CMakeFiles/Svf.dir/all' failed
+Makefile:140: recipe for target 'all' failed
 Setting up environment for SVF
 LLVM_DIR = /home/grads/h/harpreetsc/SVF/llvm-10.0.0.obj
 Z3_DIR = /home/grads/h/harpreetsc/SVF/z3.obj

@@ -32,6 +32,8 @@
 #include "SVF-FE/ICFGBuilder.h"
 #include "Graphs/PAG.h"
 #include "SVF-FE/PAGBuilder.h"
+#include "Graphs/ICFG.h"
+#include "llvm/IR/Instruction.h"
 
 using namespace SVF;
 using namespace SVFUtil;
@@ -47,7 +49,6 @@ void ICFGBuilder::build(SVFModule* svfModule)
         if (SVFUtil::isExtCall(fun))
             continue;
         WorkList worklist;
-//        errs() << *fun << "\n";
         processFunEntry(fun,worklist);
         processFunBody(worklist);
         processFunExit(fun);
@@ -70,11 +71,48 @@ void ICFGBuilder::processFunEntry(const SVFFunction*  fun, WorkList& worklist)
     for (InstVec::const_iterator nit = insts.begin(), enit = insts.end();
             nit != enit; ++nit)
     {
-//        errs() << *nit << "\n";
         ICFGNode* instNode = getOrAddBlockICFGNode(*nit);           //add interprocedure edge
         icfg->addIntraEdge(FunEntryBlockNode, instNode);
         worklist.push(*nit);
     }
+}
+
+void
+annotateBlockInst(BasicBlock *su, NodeLabel *brI, std::vector<Value*> cmpOp)
+{
+    NodeLabel *currInst;
+    for (const Instruction &inst: *su)
+    {
+        currInst = new NodeLabel(brI->getInst(), &inst, brI->getLabel());
+        currInst->copyLabel(brI);
+        for (auto &ops: cmpOp)
+        {
+            currInst->addOperand((Value*)ops);
+        }
+        errs() << "Parent Condition: " << *(currInst->getParentBranch()) << 
+            "\nCurrent Instruction: " << *(currInst->getInst()) << 
+            "\nBranch Label: " << currInst->getLabel() << 
+            "\n1st Operand: " << *(currInst->getOperand1()) << 
+            "\n2nd Operand: " << *(currInst->getOperand2()) << "\n";
+
+        if (auto *loadInst = SVFUtil::dyn_cast<LoadInst>(&inst))
+        {
+            
+        }
+        if (auto *storeInst = SVFUtil::dyn_cast<StoreInst>(&inst))
+        {
+        }
+    }
+}
+
+void
+annotateInst(BasicBlock *su, ICFGNode* sNode, NodeLabel *brInst, std::vector<Value*> cmpOp)
+{
+    StringRef thenInst = StringRef("if.then");
+    StringRef endInst = StringRef("if.end");
+    StringRef elseInst = StringRef("if.else");
+    
+    annotateBlockInst(su, brInst, cmpOp);
 }
 
 /*!
@@ -83,6 +121,11 @@ void ICFGBuilder::processFunEntry(const SVFFunction*  fun, WorkList& worklist)
 void ICFGBuilder::processFunBody(WorkList& worklist)
 {
     BBSet visited;
+    NodeLabel *currNode;
+    StringRef thenInst = StringRef("if.then");
+    StringRef endInst = StringRef("if.end");
+    StringRef elseInst = StringRef("if.else");
+        std::vector<Value*> cmpOp;
     /// function body
     while (!worklist.empty())
     {
@@ -100,42 +143,63 @@ void ICFGBuilder::processFunBody(WorkList& worklist)
             }
             InstVec nextInsts;
             getNextInsts(inst, nextInsts);
+            int loop = 2;
             for (InstVec::const_iterator nit = nextInsts.begin(), enit =
                         nextInsts.end(); nit != enit; ++nit)
             {
                 const Instruction* succ = *nit;
-//                errs() << *succ << "::\n";
+                ICFGNode* sNode = getOrAddBlockICFGNode(succ);
+                std::map<ICFGNode *, int> curBr;
                 if (auto *cmpInst = SVFUtil::dyn_cast<CmpInst>(succ))
                 {
-                    ICFGNode* sNode = getOrAddBlockICFGNode(succ);
+                    cmpOp.clear(); 
                     for (int i = 0; i < succ->getNumOperands(); i++)
                     {
                         ICFGNode* dNode = getOrAddBlockICFGNode(SVFUtil::dyn_cast<Instruction>(succ->getOperand(i)));
-                        icfg->addIntraEdge(sNode, dNode);
-                        errs() << "Source::" << *sNode << "\n";
-                        errs() << "Dest  ::" << *dNode << "\n";
+                        icfg->addIntraEdge(dNode, sNode);
+                        cmpOp.push_back(succ->getOperand(i));
                     }
                 }
-                if (auto *brInst = SVFUtil::dyn_cast<BranchInst>(succ))
+                else if (auto *brInst = SVFUtil::dyn_cast<BranchInst>(succ))
                 {
-                }
-                if (auto *loadInst = SVFUtil::dyn_cast<LoadInst>(succ))
-                {
-                    ICFGNode* sNode = getOrAddBlockICFGNode(succ);
-                    for (int i = 0; i < succ->getNumOperands(); i++)
+                    curBr.insert(std::pair<ICFGNode*, int>(sNode, ++loop));
+                    StringRef instName = succ->getOperand(0)->getName();
+                    BasicBlock *bbBranch = (BasicBlock *)succ->getParent();
+                    
+                    int counter = 2;
+                    for (BasicBlock *su : successors(bbBranch)) 
                     {
-                        ICFGNode* dNode = getOrAddBlockICFGNode(SVFUtil::dyn_cast<Instruction>(succ->getOperand(i)));
-                        icfg->addIntraEdge(sNode, dNode);
-                        errs() << "Source::" << *sNode << "\n";
-                        errs() << "Dest  ::" << *dNode << "\n";
+                        if (counter > 0) {
+                            currNode = new NodeLabel((Instruction *)succ, (Instruction *)succ, su->getName());
+                            annotateInst(su, sNode, currNode, cmpOp);
+                            counter--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
                 }
-                if (auto *storeInst = SVFUtil::dyn_cast<StoreInst>(succ))
+                else
                 {
                 }
-                if (auto *binaryInst = SVFUtil::dyn_cast<BinaryOperator>(succ))
-                {
-                }
+//                if (auto *loadInst = SVFUtil::dyn_cast<LoadInst>(succ))
+//                {
+//                    ICFGNode* sNode = getOrAddBlockICFGNode(succ);
+//                    for (int i = 0; i < succ->getNumOperands(); i++)
+//                    {
+//                        ICFGNode* dNode = getOrAddBlockICFGNode(SVFUtil::dyn_cast<Instruction>(succ->getOperand(i)));
+//                        icfg->addIntraEdge(sNode, dNode);
+//                        errs() << "Source::" << *sNode << "\n";
+//                        errs() << "Dest  ::" << *dNode << "\n";
+//                    }
+//                }
+//                if (auto *storeInst = SVFUtil::dyn_cast<StoreInst>(succ))
+//                {
+//                }
+//                if (auto *binaryInst = SVFUtil::dyn_cast<BinaryOperator>(succ))
+//                {
+//                }
                 ICFGNode* dstNode = getOrAddBlockICFGNode(succ);
                 if (isNonInstricCallSite(inst))
                 {

@@ -384,7 +384,7 @@ public:
         nodeNum++;
     }
 
-    /// Get a node
+   /// Get a node
     inline NodeType* getGNode(NodeID id) const
     {
         const_iterator it = IDToNodeMap.find(id);
